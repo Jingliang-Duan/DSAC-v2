@@ -1,4 +1,4 @@
-name: gops
+name: DSAC2.0
 
 channels:
   - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch
