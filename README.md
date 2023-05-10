@@ -25,11 +25,10 @@ pip install -e.
 This is an example of running finite-horizon Approximate Dynamic Programming (FHADP) on inverted double pendulum environment. 
 Train the policy by running:
 ```bash
-#Train an pendulum task
+#Train a pendulum task
 python main.py
 #Train a humanoid task
 python dsac_mlp_humanoidconti_offserial.py
-
 ```
 After training, the results will be stored in the "results" folder.
 
