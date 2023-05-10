@@ -3,10 +3,22 @@
 
 
 ## Installation
+```bash
+# clone DSAC2.0 repository
+git clone 
+cd Distributional-Soft-Actor-Critic-2.0
+# create conda environment
+conda env create -f gops_environment.yml
+conda activate DSAC2.0
+# install DSAC2.0
+pip install -e.
+```
+
+
+## Requires
 1. Windows 7 or greater or Linux.
-2. Python 3.6 or greater (GOPS V1.0 precompiled Simulink models use Python 3.8). We recommend using Python 3.8.
-3. (Optional) Matlab/Simulink 2018a or greater.
-4. The installation path must be in English.
+2. Python 3.8.
+3. The installation path must be in English.
 
 
 ## Quick Start
