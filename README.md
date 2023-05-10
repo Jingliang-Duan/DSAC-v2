@@ -9,7 +9,7 @@ git clone
 cd Distributional-Soft-Actor-Critic-2.0
 # create conda environment
 conda env create -f gops_environment.yml
-conda activate DSAC2.0
+conda activate gops
 # install DSAC2.0
 pip install -e.
 ```
@@ -25,12 +25,13 @@ pip install -e.
 This is an example of running finite-horizon Approximate Dynamic Programming (FHADP) on inverted double pendulum environment. 
 Train the policy by running:
 ```bash
-python example_train/fhadp/fhadp_mlp_idpendulum_serial.py
+#Train an pendulum task
+python main.py
+#Train a humanoid task
+python dsac_mlp_humanoidconti_offserial.py
+
 ```
-After training, test the policy by running:
-```bash
-python example_run/run_idp_fhadp.py
-```
+After training, the results will be stored in the "results" folder.
 
 
 ## Acknowledgment
