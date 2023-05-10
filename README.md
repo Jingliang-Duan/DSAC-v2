@@ -30,7 +30,7 @@ python main.py
 #Train a humanoid task. To execute this file, Mujoco and Mujoco-py need to be installed first. 
 python dsac_mlp_humanoidconti_offserial.py
 ```
-After training, the results will be stored in the "results" folder.
+After training, the results will be stored in the "Distributional-Soft-Actor-Critic-2.0/results" folder.
 
 
 ## Acknowledgment
