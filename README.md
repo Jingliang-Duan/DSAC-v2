@@ -5,7 +5,7 @@
 ## Installation
 ```bash
 # clone DSAC2.0 repository
-git clone 
+git clone git@github.com:Jingliang-Duan/Distributional-Soft-Actor-Critic-2.0.git
 cd Distributional-Soft-Actor-Critic-2.0
 # create conda environment
 conda env create -f gops_environment.yml
