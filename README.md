@@ -2,6 +2,12 @@
 - [Distributional Soft Actor-Critic (DSAC)](https://arxiv.org/abs/2001.02811)
 
 
+## Requires
+1. Windows 7 or greater or Linux.
+2. Python 3.8.
+3. The installation path must be in English.
+
+
 ## Installation
 ```bash
 # clone DSAC2.0 repository
@@ -13,12 +19,6 @@ conda activate DSAC2.0
 # install DSAC2.0
 pip install -e.
 ```
-
-
-## Requires
-1. Windows 7 or greater or Linux.
-2. Python 3.8.
-3. The installation path must be in English.
 
 
 ## Quick Start
