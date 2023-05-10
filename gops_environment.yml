@@ -1,0 +1,27 @@
+name: gops
+
+channels:
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge
+  - defaults
+
+dependencies:
+  - python=3.8
+  - pytorch>=1.13.0
+  - numpy>1.16.0
+  - pandas
+  - tensorboard>=2.5.0
+  - matplotlib
+  - seaborn
+  - scipy
+  - cyipopt
+  - pip
+  - pip:
+    - ray>=1.0.0
+    - gym==0.23.1
+    - box2d
+    - pygame
+    - pyglet
+    - slxpy
+    - openpyxl
+    - intel-openmp
