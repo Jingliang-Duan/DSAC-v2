@@ -10,7 +10,7 @@ import os
 
 from setuptools import setup, find_packages
 
-#import gops
+
 
 
 def find_data_packages(where):
@@ -21,13 +21,13 @@ def find_data_packages(where):
         data_packages.append(filepath)
     return data_packages
 
-
+__version__ = "1.1.0"
 setup(
-    name='gops',
-    version=gops.__version__,
-    description='General Optimal control Problem Solver (GOPS)',
+    name='DSAC2.0',
+    version=__version__,
+    description='Distributional Soft Actor-Critic 2.0',
     url='https://gitee.com/tsinghua-university-iDLab-GOPS/gops',
-    author='Intelligent Driving Lab (iDLab)',
+    author='Intelligent Driving Lab (iDLab)-Jingliang Duan',
     packages=[package for package in find_packages() if package.startswith('gops')],
     package_data={
         'gops.env': find_data_packages('gops/env')
