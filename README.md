@@ -10,6 +10,7 @@
 
 ## Installation
 ```bash
+# Please make sure not to include Chinese characters in the installation path, as it may result in a failed execution.
 # clone DSAC2.0 repository
 git clone git@github.com:Jingliang-Duan/Distributional-Soft-Actor-Critic-2.0.git
 cd Distributional-Soft-Actor-Critic-2.0
