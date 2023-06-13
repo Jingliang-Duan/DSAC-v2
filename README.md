@@ -26,6 +26,7 @@ pip install -e.
 These are two examples of running DSAC2.0 on two environments. 
 Train the policy by running:
 ```bash
+cd example_train
 #Train a pendulum task
 python main.py
 #Train a humanoid task. To execute this file, Mujoco and Mujoco-py need to be installed first. 
