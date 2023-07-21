@@ -35,7 +35,7 @@ python dsac_mlp_humanoidconti_offserial.py
 After training, the results will be stored in the "Distributional-Soft-Actor-Critic-2.0/results" folder.
 
 ## Simulation 
-In the "Distributional-Soft-Actor-Critic-2.0/results" folder, pick the path to the folder where the strategy will be applied to the simulation and select the appropriate PKL file for the simulation.
+In the "Distributional-Soft-Actor-Critic-2.0/results" folder, pick the path to the folder where the policy will be applied to the simulation and select the appropriate PKL file for the simulation.
 ```
 python run_figures.py
 #you may need to "pip install imageio-ffmpeg" before running this file on Windows. 
