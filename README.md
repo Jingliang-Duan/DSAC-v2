@@ -22,7 +22,7 @@ pip install -e.
 ```
 
 
-## Quick Start
+## Train
 These are two examples of running DSAC2.0 on two environments. 
 Train the policy by running:
 ```bash
@@ -33,6 +33,14 @@ python main.py
 python dsac_mlp_humanoidconti_offserial.py
 ```
 After training, the results will be stored in the "Distributional-Soft-Actor-Critic-2.0/results" folder.
+
+## Simulation 
+In the "Distributional-Soft-Actor-Critic-2.0/results" folder, pick the path to the folder where the strategy will be applied to the simulation and select the appropriate PKL file for the simulation.
+```
+python run_figures.py
+#you may need to "pip install imageio-ffmpeg" before running this file on Windows. 
+```
+After running, the simulation vedio and state&action curve figures will be stored in the "Distributional-Soft-Actor-Critic-2.0/figures" folder.
 
 
 ## Acknowledgment
