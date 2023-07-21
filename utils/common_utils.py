@@ -19,7 +19,7 @@ from typing import Optional
 from typing import Any, Dict
 from torch import Tensor
 
-from .act_distribution_cls import *
+from act_distribution_cls import *
 import random
 
 logger = logging.getLogger(__name__)
