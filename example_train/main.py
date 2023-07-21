@@ -23,7 +23,9 @@ if __name__ == "__main__":
 
     ################################################
     # Key Parameters for users
-    parser.add_argument("--env_id", type=str, default="Pendulum-v1")
+    parser.add_argument("--env_id", type=str, default="gym_pendulum")
+    #Pendulum-v1
+    #InvertedDoublePendulum-v2
     parser.add_argument("--algorithm", type=str, default="DSAC")
     parser.add_argument("--enable_cuda", default=False, help="Enable CUDA")
     ################################################

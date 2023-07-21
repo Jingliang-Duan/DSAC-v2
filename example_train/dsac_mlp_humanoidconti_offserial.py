@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     ################################################
     # Key Parameters for users
-    parser.add_argument("--env_id", type=str, default="Humanoid-v3")
+    parser.add_argument("--env_id", type=str, default="gym_humanoid")
     parser.add_argument("--algorithm", type=str, default="DSAC")
     parser.add_argument("--enable_cuda", default=False, help="Enable CUDA")
     parser.add_argument("--seed", default=None, help="Enable CUDA")
@@ -102,7 +102,7 @@ if __name__ == "__main__":
         type=str,
         default="off_serial_trainer",)
     # Maximum iteration number
-    parser.add_argument("--max_iteration", type=int, default=1500000)
+    parser.add_argument("--max_iteration", type=int, default=100000)
     parser.add_argument(
         "--ini_network_dir",
         type=str,
