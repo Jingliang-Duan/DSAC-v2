@@ -1,12 +1,3 @@
-#  Copyright (c). All Rights Reserved.
-#  General Optimal control Problem Solver (GOPS)
-#  Intelligent Driving Lab(iDLab), Tsinghua University
-#
-#  Creator: iDLab
-#  Description: initial Parameters
-#  Update Date: 2021-03-10, Yuhang Zhang: Revise Codes
-
-
 import copy
 import datetime
 import json

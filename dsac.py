@@ -1,19 +1,3 @@
-#  Copyright (c). All Rights Reserved.
-#  General Optimal control Problem Solver (GOPS)
-#  Intelligent Driving Lab (iDLab), Tsinghua University
-#
-#  Creator: iDLab
-#  Lab Leader: Prof. Shengbo Eben Li
-#  Email: lisb04@gmail.com
-#
-#  Description: Distributed Soft Actor-Critic (DSAC) algorithm
-#  Reference: Duan J, Guan Y, Li S E, et al.
-#             Distributional soft actor-critic: Off-policy reinforcement learning
-#             for addressing value estimation errors[J].
-#             IEEE transactions on neural networks and learning systems, 2021.
-#  Update: 2021-03-05, Ziqing Gu: create DSAC algorithm
-#  Update: 2021-03-05, Wenxuan Wang: debug DSAC algorithm
-
 __all__=["ApproxContainer","DSAC"]
 import time
 from copy import deepcopy

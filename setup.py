@@ -1,11 +1,3 @@
-#  Copyright (c). All Rights Reserved.
-#  General Optimal control Problem Solver (GOPS)
-#  Intelligent Driving Lab(iDLab), Tsinghua University
-#
-#  Creator: iDLab
-#  Description: Setup of GOPS Software
-#  Update Date: 2022-01-10, Yujie Yang: Create codes
-
 import os
 
 from setuptools import setup, find_packages

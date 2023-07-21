@@ -1,15 +1,3 @@
-#  Copyright (c). All Rights Reserved.
-#  General Optimal control Problem Solver (GOPS)
-#  Intelligent Driving Lab (iDLab), Tsinghua University
-#
-#  Creator: iDLab
-#  Lab Leader: Prof. Shengbo Eben Li
-#  Email: lisb04@gmail.com
-#
-#  Description: Tensorboard Related Function
-#  Update: 2021-03-10, Yuhang Zhang: Create codes
-
-
 import numpy as np
 import pandas as pd
 import os

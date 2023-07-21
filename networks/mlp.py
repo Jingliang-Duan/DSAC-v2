@@ -1,15 +1,3 @@
-#  Copyright (c). All Rights Reserved.
-#  General Optimal control Problem Solver (GOPS)
-#  Intelligent Driving Lab (iDLab), Tsinghua University
-#
-#  Creator: iDLab
-#  Lab Leader: Prof. Shengbo Eben Li
-#  Email: lisb04@gmail.com
-#
-#  Description: Multilayer Perceptron (MLP)
-#  Update: 2021-03-05, Wenjun Zou: create MLP function
-
-
 __all__ = [
     "StochaPolicy",
     "ActionValueDistri",

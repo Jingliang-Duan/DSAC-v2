@@ -1,16 +1,3 @@
-#  Copyright (c). All Rights Reserved.
-#  General Optimal control Problem Solver (GOPS)
-#  Intelligent Driving Lab (iDLab), Tsinghua University
-#
-#  Creator: iDLab
-#  Lab Leader: Prof. Shengbo Eben Li
-#  Email: lisb04@gmail.com
-#
-#  Description: Serial trainer for off-policy RL algorithms
-#  Update Date: 2021-05-21, Shengbo LI: Format Revise
-#  Update Date: 2022-04-14, Jiaxin Gao: decrease parameters copy times
-#  Update: 2022-12-05, Wenhan Cao: add annotation
-
 __all__ = ["OffSerialTrainer"]
 
 from cmath import inf

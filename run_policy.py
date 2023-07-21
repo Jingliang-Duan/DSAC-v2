@@ -1,15 +1,3 @@
-#  Copyright (c). All Rights Reserved.
-#  General Optimal control Problem Solver (GOPS)
-#  Intelligent Driving Lab (iDLab), Tsinghua University
-#
-#  Creator: iDLab
-#  Lab Leader: Prof. Shengbo Eben Li
-#  Email: lisb04@gmail.com
-#
-#  Description: run a closed-loop system
-#  Update: 2022-12-05, Congsheng Zhang: create file
-
-
 from utils.sys_run import PolicyRunner
 
 runner = PolicyRunner(

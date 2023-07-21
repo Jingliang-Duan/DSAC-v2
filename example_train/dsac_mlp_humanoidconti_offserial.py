@@ -1,14 +1,3 @@
-#  Copyright (c). All Rights Reserved.
-#  General Optimal control Problem Solver (GOPS)
-#  Intelligent Driving Lab(iDLab), Tsinghua University
-#
-#  Creator: iDLab
-#  Lab Leader: Prof. Shengbo Eben Li
-#  Email: lisb04@gmail.com
-#
-#  Description: example for dsac + humanoidconti + mlp + offserial
-#  Update Date: 2021-03-05, Wenxuan Wang: create example
-
 import argparse
 import os
 import numpy as np

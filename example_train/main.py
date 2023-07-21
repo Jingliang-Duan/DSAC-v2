@@ -1,10 +1,3 @@
-#  Copyright (c). All Rights Reserved.
-#  General Optimal control Problem Solver (GOPS)
-#  Intelligent Driving Lab(iDLab), Tsinghua University
-#
-#  Creator: Gu Ziqing
-#  Update Date: 2021-03-05, Wenxuan Wang: debug DSAC algorithm
-
 import argparse
 import os
 
@@ -23,7 +16,7 @@ if __name__ == "__main__":
 
     ################################################
     # Key Parameters for users
-    parser.add_argument("--env_id", type=str, default="gym_pendulum")  #gym_pendulum can be replaced by other env in the env_gym folder, such as gym_ant, gym_walker2d...
+    parser.add_argument("--env_id", type=str, default="gym_pendulum")  #gym_pendulum can be replaced by other envs in the env_gym folder, such as gym_ant, gym_walker2d...
     parser.add_argument("--algorithm", type=str, default="DSAC")
     parser.add_argument("--enable_cuda", default=False, help="Enable CUDA")
     ################################################

@@ -1,17 +1,5 @@
-#  Copyright (c). All Rights Reserved.
-#  General Optimal control Problem Solver (GOPS)
-#  Intelligent Driving Lab (iDLab), Tsinghua University
-#
-#  Creator: iDLab
-#  Lab Leader: Prof. Shengbo Eben Li
-#  Email: lisb04@gmail.com
-#
-#  Description: Acrobat Environment
-#  Update Date: 2021-05-55, Hao Sun: create environment
-
-
-import math
 import gym
+import math
 from gym import spaces
 from gym.utils import seeding
 import numpy as np

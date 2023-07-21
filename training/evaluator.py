@@ -1,12 +1,3 @@
-#  Copyright (c). All Rights Reserved.
-#  General Optimal control Problem Solver (GOPS)
-#  Intelligent Driving Lab(iDLab), Tsinghua University
-#
-#  Creator: iDLab
-#  Description: Evaluation of trained policy
-#  Update Date: 2021-05-10, Yang Guan: renew environment parameters
-
-
 import numpy as np
 import torch
 

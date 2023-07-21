@@ -1,14 +1,3 @@
-#  Copyright (c). All Rights Reserved.
-#  General Optimal control Problem Solver (GOPS)
-#  Intelligent Driving Lab (iDLab), Tsinghua University
-#
-#  Creator: iDLab
-#  Lab Leader: Prof. Shengbo Eben Li
-#  Email: lisb04@gmail.com
-#
-#  Description: plot module for trained policy
-#  Update: 2022-12-05, Congsheng Zhang: create plot module
-
 import argparse
 import datetime
 import glob
