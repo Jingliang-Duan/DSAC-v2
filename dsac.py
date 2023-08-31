@@ -8,25 +8,22 @@ import torch.nn as nn
 from torch.distributions import Normal
 from torch.optim import Adam
 
-from typing import Dict
-from utils.initialization import create_apprfunc
-from utils.tensorboard_setup import tb_tags
-from utils.common_utils import get_apprfunc_dict
+from gops.algorithm.base import AlgorithmBase, ApprBase
+from gops.create_pkg.create_apprfunc import create_apprfunc
+from gops.utils.tensorboard_setup import tb_tags
+from gops.utils.gops_typing import DataDict
+from gops.utils.common_utils import get_apprfunc_dict
 
 
-class ApproxContainer(torch.nn.Module):
+class ApproxContainer(ApprBase):
     """Approximate function container for DSAC.
 
     Contains one policy and one action value.
     """
 
     def __init__(self, **kwargs):
-        super().__init__()
-        if kwargs["cnn_shared"]:
-            feature_args = get_apprfunc_dict("feature", kwargs["value_func_type"], **kwargs)
-            kwargs["feature_net"] = create_apprfunc(**feature_args)
+        super().__init__(**kwargs)
         # create q networks
-
         q_args = get_apprfunc_dict("value", kwargs["value_func_type"], **kwargs)
         self.q1: nn.Module = create_apprfunc(**q_args)
         self.q2: nn.Module = create_apprfunc(**q_args)
@@ -61,24 +58,22 @@ class ApproxContainer(torch.nn.Module):
         return self.policy.get_act_dist(logits)
 
 
-class DSAC:
+class DSAC(AlgorithmBase):
     """Modified DSAC algorithm
 
     Paper: https://arxiv.org/pdf/2001.02811
 
-    :param int index: algorithm index.
     :param float gamma: discount factor.
     :param float tau: param for soft update of target network.
     :param bool auto_alpha: whether to adjust temperature automatically.
     :param float alpha: initial temperature.
-    :param float delay_update: the update delay of the policy network.
+    :param float delay_update: delay update steps for actor.
     :param Optional[float] target_entropy: target entropy for automatic
         temperature adjustment.
     """
 
-    def __init__(self, **kwargs):
-    # def __init__(self, index=0, **kwargs):
-    #     super().__init__(index, **kwargs)
+    def __init__(self, index=0, **kwargs):
+        super().__init__(index, **kwargs)
         self.networks = ApproxContainer(**kwargs)
         self.gamma = kwargs["gamma"]
         self.tau = kwargs["tau"]
@@ -86,6 +81,7 @@ class DSAC:
         self.auto_alpha = kwargs["auto_alpha"]
         self.alpha = kwargs.get("alpha", 0.2)
         self.delay_update = kwargs["delay_update"]
+        self.TD_bound = kwargs["TD_bound"]
 
     @property
     def adjustable_parameters(self):
@@ -94,14 +90,47 @@ class DSAC:
             "tau",
             "auto_alpha",
             "alpha",
+            "TD_bound"
             "delay_update",
         )
 
-    def local_update(self, data: Dict, iteration: int) -> dict:
+    def local_update(self, data: DataDict, iteration: int) -> dict:
         tb_info = self.__compute_gradient(data, iteration)
         self.__update(iteration)
         return tb_info
 
+    def get_remote_update_info(
+        self, data: DataDict, iteration: int
+    ) -> Tuple[dict, dict]:
+        tb_info = self.__compute_gradient(data, iteration)
+
+        update_info = {
+            "q1_grad": [p._grad for p in self.networks.q1.parameters()],
+            "q2_grad": [p._grad for p in self.networks.q2.parameters()],
+            "policy_grad": [p._grad for p in self.networks.policy.parameters()],
+            "iteration": iteration,
+        }
+        if self.auto_alpha:
+            update_info.update({"log_alpha_grad":self.networks.log_alpha.grad})
+
+        return tb_info, update_info
+
+    def remote_update(self, update_info: dict):
+        iteration = update_info["iteration"]
+        q1_grad = update_info["q1_grad"]
+        q2_grad = update_info["q2_grad"]
+        policy_grad = update_info["policy_grad"]
+
+        for p, grad in zip(self.networks.q1.parameters(), q1_grad):
+            p._grad = grad
+        for p, grad in zip(self.networks.q2.parameters(), q2_grad):
+            p._grad = grad
+        for p, grad in zip(self.networks.policy.parameters(), policy_grad):
+            p._grad = grad
+        if self.auto_alpha:
+            self.networks.log_alpha._grad = update_info["log_alpha_grad"]
+
+        self.__update(iteration)
 
     def __get_alpha(self, requires_grad: bool = False):
         if self.auto_alpha:
@@ -113,7 +142,7 @@ class DSAC:
         else:
             return self.alpha
 
-    def __compute_gradient(self, data: Dict, iteration: int):
+    def __compute_gradient(self, data: DataDict, iteration: int):
         start_time = time.time()
 
         obs = data["obs"]
@@ -152,16 +181,16 @@ class DSAC:
             loss_alpha.backward()
 
         tb_info = {
-            "DSAC/critic_avg_q1-RL iter": q1.item(),
-            "DSAC/critic_avg_q2-RL iter": q2.item(),
-            "DSAC/critic_avg_std1-RL iter": std1.item(),
-            "DSAC/critic_avg_std2-RL iter": std2.item(),
+            "DSAC2/critic_avg_q1-RL iter": q1.item(),
+            "DSAC2/critic_avg_q2-RL iter": q2.item(),
+            "DSAC2/critic_avg_std1-RL iter": std1.item(),
+            "DSAC2/critic_avg_std2-RL iter": std2.item(),
             tb_tags["loss_actor"]: loss_policy.item(),
             tb_tags["loss_critic"]: loss_q.item(),
-            "DSAC/policy_mean-RL iter": policy_mean,
-            "DSAC/policy_std-RL iter": policy_std,
-            "DSAC/entropy-RL iter": entropy.item(),
-            "DSAC/alpha-RL iter": self.__get_alpha(),
+            "DSAC2/policy_mean-RL iter": policy_mean,
+            "DSAC2/policy_std-RL iter": policy_std,
+            "DSAC2/entropy-RL iter": entropy.item(),
+            "DSAC2/alpha-RL iter": self.__get_alpha(),
             tb_tags["alg_time"]: (time.time() - start_time) * 1000,
         }
 
@@ -177,7 +206,7 @@ class DSAC:
         q_value = mean + torch.mul(z, std)
         return mean, std, q_value
 
-    def __compute_loss_q(self, data: Dict):
+    def __compute_loss_q(self, data: DataDict):
         obs, act, rew, obs2, done = (
             data["obs"],
             data["act"],
@@ -188,7 +217,7 @@ class DSAC:
         logits_2 = self.networks.policy_target(obs2)
         act2_dist = self.networks.create_action_distributions(logits_2)
         act2, log_prob_act2 = act2_dist.rsample()
-
+        t1=time.time()
         q1, q1_std, _ = self.__q_evaluate(obs, act, self.networks.q1)
         q2, q2_std, _ = self.__q_evaluate(obs, act, self.networks.q2)
 
@@ -199,32 +228,46 @@ class DSAC:
         q2_next, _, q2_next_sample = self.__q_evaluate(
             obs2, act2, self.networks.q2_target
         )
+        t2 = time.time()
+        t = t2 - t1
         q_next = torch.min(q1_next, q2_next)
         q_next_sample = torch.where(q1_next < q2_next, q1_next_sample, q2_next_sample)
 
         target_q1, target_q1_bound = self.__compute_target_q(
-            rew, done, q1.detach(),q1_std.detach(), q_next.detach(), q_next_sample.detach(), log_prob_act2.detach(),
+            rew,
+            done,
+            q1.detach(),
+            q1_std.detach(),
+            q_next.detach(),
+            q_next_sample.detach(),
+            log_prob_act2.detach(),
         )
         
         target_q2, target_q2_bound = self.__compute_target_q(
-            rew, done, q2.detach(), q2_std.detach(),q_next.detach(), q_next_sample.detach(), log_prob_act2.detach(),
+            rew,
+            done,
+            q2.detach(),
+            q2_std.detach(),
+            q_next.detach(),
+            q_next_sample.detach(),
+            log_prob_act2.detach(),
         )
 
+        weight = 0.5 * (torch.mean(torch.pow(q1_std.detach(), 2))
+                        + torch.mean(torch.pow(q2_std.detach(), 2)))
 
-        beta1 = min(1/torch.sqrt(torch.mean(torch.pow(q1.detach() - target_q1_bound, 2))),1)
-
-        q1_loss = torch.mean(
+        q1_loss = weight*torch.mean(
             torch.pow(q1 - target_q1, 2) / (2 * torch.pow(q1_std.detach(), 2))
-            +beta1 *(torch.pow(q1.detach() - target_q1_bound, 2) / (2 * torch.pow(q1_std, 2))
+            +(torch.pow(q1.detach() - target_q1_bound, 2) / (2 * torch.pow(q1_std, 2))
             + torch.log(q1_std))
         )
 
 
-        beta2 = min(1 / torch.sqrt(torch.mean(torch.pow(q2.detach() - target_q2_bound, 2))), 1)
 
-        q2_loss = torch.mean(
+
+        q2_loss = weight*torch.mean(
             torch.pow(q2 - target_q2, 2) / (2 * torch.pow(q2_std.detach(), 2))
-            + beta2*(torch.pow(q2.detach() - target_q2_bound, 2) / (2 * torch.pow(q2_std, 2))
+            + (torch.pow(q2.detach() - target_q2_bound, 2) / (2 * torch.pow(q2_std, 2))
             + torch.log(q2_std))
         )
 
@@ -238,12 +281,12 @@ class DSAC:
         target_q_sample = r + (1 - done) * self.gamma * (
             q_next_sample - self.__get_alpha() * log_prob_a_next
         )
-        td_bound = 3*q_std
+        td_bound = 3 * torch.mean(q_std)
         difference = torch.clamp(target_q_sample - q, -td_bound, td_bound)
         target_q_bound = q + difference
         return target_q.detach(), target_q_bound.detach()
 
-    def __compute_loss_policy(self, data: Dict):
+    def __compute_loss_policy(self, data: DataDict):
         obs, new_act, new_log_prob = data["obs"], data["new_act"], data["new_log_prob"]
         q1, _, _ = self.__q_evaluate(obs, new_act, self.networks.q1)
         q2, _, _ = self.__q_evaluate(obs, new_act, self.networks.q2)
@@ -251,7 +294,7 @@ class DSAC:
         entropy = -new_log_prob.detach().mean()
         return loss_policy, entropy
 
-    def __compute_loss_alpha(self, data: Dict):
+    def __compute_loss_alpha(self, data: DataDict):
         new_log_prob = data["new_log_prob"]
         loss_alpha = (
             -self.networks.log_alpha
