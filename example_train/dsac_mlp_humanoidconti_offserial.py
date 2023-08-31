@@ -18,8 +18,8 @@ if __name__ == "__main__":
 
     ################################################
     # Key Parameters for users
-    parser.add_argument("--env_id", type=str, default="gym_humanoid")
-    parser.add_argument("--algorithm", type=str, default="DSAC")
+    parser.add_argument("--env_id", type=str, default="gym_humanoid", help="id of environment")
+    parser.add_argument("--algorithm", type=str, default="DSAC2W2MEAN", help="RL algorithm")
     parser.add_argument("--enable_cuda", default=False, help="Enable CUDA")
     parser.add_argument("--seed", default=None, help="Enable CUDA")
     ################################################
@@ -38,13 +38,13 @@ if __name__ == "__main__":
     )
     parser.add_argument("--value_func_type", type=str, default="MLP", help="Options: MLP/CNN/RNN/POLY/GAUSS")
     value_func_type = parser.parse_known_args()[0].value_func_type
-    parser.add_argument("--value_hidden_sizes", type=list, default=[256, 256])
+    parser.add_argument("--value_hidden_sizes", type=list, default=[256,256,256])
     parser.add_argument(
-        "--value_hidden_activation", type=str, default="relu", help="Options: relu"
+        "--value_hidden_activation", type=str, default="gelu", help="Options: relu/gelu/elu/selu/sigmoid/tanh"
     )
     parser.add_argument("--value_output_activation", type=str, default="linear")
     parser.add_argument("--value_min_log_std", type=int, default=-0.1)
-    parser.add_argument("--value_max_log_std", type=int, default=4)
+    parser.add_argument("--value_max_log_std", type=int, default=5)
 
     # 2.2 Parameters of policy approximate function
     parser.add_argument(
@@ -59,11 +59,12 @@ if __name__ == "__main__":
         "--policy_act_distribution",
         type=str,
         default="TanhGaussDistribution",
+        help="Options: default/TanhGaussDistribution/GaussDistribution",
     )
     policy_func_type = parser.parse_known_args()[0].policy_func_type
-    parser.add_argument("--policy_hidden_sizes", type=list, default=[256, 256])
+    parser.add_argument("--policy_hidden_sizes", type=list, default=[256,256,256])
     parser.add_argument(
-        "--policy_hidden_activation", type=str, default="relu"
+        "--policy_hidden_activation", type=str, default="gelu", help="Options: relu/gelu/elu/selu/sigmoid/tanh"
     )
     parser.add_argument("--policy_output_activation", type=str, default="linear")
     parser.add_argument("--policy_min_log_std", type=int, default=-20)
@@ -71,10 +72,9 @@ if __name__ == "__main__":
 
     ################################################
     # 3. Parameters for RL algorithm
-    parser.add_argument("--value_learning_rate", type=float, default=1e-3)
-    parser.add_argument("--policy_learning_rate", type=float, default=1e-3)
-    parser.add_argument("--alpha_learning_rate", type=float, default=3e-4)
-
+    parser.add_argument("--value_learning_rate", type=float, default=0.0001)
+    parser.add_argument("--policy_learning_rate", type=float, default=0.0001)
+    parser.add_argument("--alpha_learning_rate", type=float, default=0.0003)
     # special parameter
     parser.add_argument("--gamma", type=float, default=0.99)
     parser.add_argument("--tau", type=float, default=0.005)
@@ -91,7 +91,7 @@ if __name__ == "__main__":
         type=str,
         default="off_serial_trainer",)
     # Maximum iteration number
-    parser.add_argument("--max_iteration", type=int, default=100000)
+    parser.add_argument("--max_iteration", type=int, default=1500000)
     parser.add_argument(
         "--ini_network_dir",
         type=str,
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     # 5. Parameters for sampler
     parser.add_argument("--sampler_name", type=str, default="off_sampler")
     # Batch size of sampler for buffer store
-    parser.add_argument("--sample_batch_size", type=int, default=8)
+    parser.add_argument("--sample_batch_size", type=int, default=20)
     # Add noise to action for better exploration
     parser.add_argument("--noise_params", type=dict, default=None)
 
@@ -129,7 +129,6 @@ if __name__ == "__main__":
 
     ################################################
     # 7. Data savings
-    #parser.add_argument("--save_folder", type=str, default= "/home/wangwenxuan/gops_idp/gops/results/DSAC2/humanoid_r_0.2_sb_20_si_1_2")
     parser.add_argument("--save_folder", type=str, default= None)
     # Save value/policy every N updates
     parser.add_argument("--apprfunc_save_interval", type=int, default=50000)
@@ -160,6 +159,6 @@ if __name__ == "__main__":
     print("Training is finished!")
 
     ################################################
-    # Plot and save training figures
+    # Save training figures
     save_tb_to_csv(args["save_folder"])
     print("Plot & Save are finished!")
