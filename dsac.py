@@ -153,6 +153,7 @@ class DSAC(AlgorithmBase):
 
         act_dist = self.networks.create_action_distributions(logits)
         new_act, new_log_prob = act_dist.rsample()
+
         data.update({"new_act": new_act, "new_log_prob": new_log_prob})
 
         self.networks.q1_optimizer.zero_grad()
