@@ -36,7 +36,7 @@ After training, the results will be stored in the "Distributional-Soft-Actor-Cri
 
 ## Simulation 
 In the "Distributional-Soft-Actor-Critic-2.0/results" folder, pick the path to the folder where the policy will be applied to the simulation and select the appropriate PKL file for the simulation.
-```
+```bash
 python run_policy.py
 #you may need to "pip install imageio-ffmpeg" before running this file on Windows. 
 ```
