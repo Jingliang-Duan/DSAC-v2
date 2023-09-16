@@ -8,21 +8,23 @@ import torch.nn as nn
 from torch.distributions import Normal
 from torch.optim import Adam
 
-from gops.algorithm.base import AlgorithmBase, ApprBase
-from gops.create_pkg.create_apprfunc import create_apprfunc
-from gops.utils.tensorboard_setup import tb_tags
-from gops.utils.gops_typing import DataDict
-from gops.utils.common_utils import get_apprfunc_dict
+from typing import Dict
+from utils.tensorboard_setup import tb_tags
+from utils.initialization import create_apprfunc
+from utils.common_utils import get_apprfunc_dict
 
 
-class ApproxContainer(ApprBase):
+class ApproxContainer(torch.nn.Module):
     """Approximate function container for DSAC.
 
     Contains one policy and one action value.
     """
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__()
+        if kwargs["cnn_shared"]:
+            feature_args = get_apprfunc_dict("feature", kwargs["value_func_type"], **kwargs)
+            kwargs["feature_net"] = create_apprfunc(**feature_args)
         # create q networks
         q_args = get_apprfunc_dict("value", kwargs["value_func_type"], **kwargs)
         self.q1: nn.Module = create_apprfunc(**q_args)
@@ -58,11 +60,12 @@ class ApproxContainer(ApprBase):
         return self.policy.get_act_dist(logits)
 
 
-class DSAC(AlgorithmBase):
+class DSAC:
     """Modified DSAC algorithm
 
     Paper: https://arxiv.org/pdf/2001.02811
 
+    :param int index: algorithm index.
     :param float gamma: discount factor.
     :param float tau: param for soft update of target network.
     :param bool auto_alpha: whether to adjust temperature automatically.
@@ -72,8 +75,7 @@ class DSAC(AlgorithmBase):
         temperature adjustment.
     """
 
-    def __init__(self, index=0, **kwargs):
-        super().__init__(index, **kwargs)
+    def __init__(self,  **kwargs):
         self.networks = ApproxContainer(**kwargs)
         self.gamma = kwargs["gamma"]
         self.tau = kwargs["tau"]
@@ -94,13 +96,13 @@ class DSAC(AlgorithmBase):
             "delay_update",
         )
 
-    def local_update(self, data: DataDict, iteration: int) -> dict:
+    def local_update(self, data: Dict, iteration: int) -> dict:
         tb_info = self.__compute_gradient(data, iteration)
         self.__update(iteration)
         return tb_info
 
     def get_remote_update_info(
-        self, data: DataDict, iteration: int
+        self, data: Dict, iteration: int
     ) -> Tuple[dict, dict]:
         tb_info = self.__compute_gradient(data, iteration)
 
@@ -142,7 +144,7 @@ class DSAC(AlgorithmBase):
         else:
             return self.alpha
 
-    def __compute_gradient(self, data: DataDict, iteration: int):
+    def __compute_gradient(self, data: Dict, iteration: int):
         start_time = time.time()
 
         obs = data["obs"]
@@ -153,7 +155,6 @@ class DSAC(AlgorithmBase):
 
         act_dist = self.networks.create_action_distributions(logits)
         new_act, new_log_prob = act_dist.rsample()
-
         data.update({"new_act": new_act, "new_log_prob": new_log_prob})
 
         self.networks.q1_optimizer.zero_grad()
@@ -207,7 +208,7 @@ class DSAC(AlgorithmBase):
         q_value = mean + torch.mul(z, std)
         return mean, std, q_value
 
-    def __compute_loss_q(self, data: DataDict):
+    def __compute_loss_q(self, data: Dict):
         obs, act, rew, obs2, done = (
             data["obs"],
             data["act"],
@@ -218,7 +219,7 @@ class DSAC(AlgorithmBase):
         logits_2 = self.networks.policy_target(obs2)
         act2_dist = self.networks.create_action_distributions(logits_2)
         act2, log_prob_act2 = act2_dist.rsample()
-        t1=time.time()
+
         q1, q1_std, _ = self.__q_evaluate(obs, act, self.networks.q1)
         q2, q2_std, _ = self.__q_evaluate(obs, act, self.networks.q2)
 
@@ -229,8 +230,6 @@ class DSAC(AlgorithmBase):
         q2_next, _, q2_next_sample = self.__q_evaluate(
             obs2, act2, self.networks.q2_target
         )
-        t2 = time.time()
-        t = t2 - t1
         q_next = torch.min(q1_next, q2_next)
         q_next_sample = torch.where(q1_next < q2_next, q1_next_sample, q2_next_sample)
 
@@ -287,7 +286,7 @@ class DSAC(AlgorithmBase):
         target_q_bound = q + difference
         return target_q.detach(), target_q_bound.detach()
 
-    def __compute_loss_policy(self, data: DataDict):
+    def __compute_loss_policy(self, data: Dict):
         obs, new_act, new_log_prob = data["obs"], data["new_act"], data["new_log_prob"]
         q1, _, _ = self.__q_evaluate(obs, new_act, self.networks.q1)
         q2, _, _ = self.__q_evaluate(obs, new_act, self.networks.q2)
@@ -295,7 +294,7 @@ class DSAC(AlgorithmBase):
         entropy = -new_log_prob.detach().mean()
         return loss_policy, entropy
 
-    def __compute_loss_alpha(self, data: DataDict):
+    def __compute_loss_alpha(self, data: Dict):
         new_log_prob = data["new_log_prob"]
         loss_alpha = (
             -self.networks.log_alpha
