@@ -253,8 +253,9 @@ class DSAC:
             log_prob_act2.detach(),
         )
 
-        weight = 0.5 * (torch.mean(torch.pow(q1_std.detach(), 2))
-                        + torch.mean(torch.pow(q2_std.detach(), 2)))
+        # weight = 0.5 * (torch.mean(torch.pow(q1_std.detach(), 2))
+        #                 + torch.mean(torch.pow(q2_std.detach(), 2)))
+        weight = 1
 
         q1_loss = weight*torch.mean(
             torch.pow(q1 - target_q1, 2) / (2 * torch.pow(q1_std.detach(), 2))
