@@ -14,6 +14,7 @@ from utils.initialization import create_apprfunc
 from utils.common_utils import get_apprfunc_dict
 
 
+
 class ApproxContainer(torch.nn.Module):
     """Approximate function container for DSAC.
 
@@ -65,7 +66,6 @@ class DSAC:
 
     Paper: https://arxiv.org/pdf/2001.02811
 
-    :param int index: algorithm index.
     :param float gamma: discount factor.
     :param float tau: param for soft update of target network.
     :param bool auto_alpha: whether to adjust temperature automatically.
@@ -75,7 +75,8 @@ class DSAC:
         temperature adjustment.
     """
 
-    def __init__(self,  **kwargs):
+    def __init__(self, **kwargs):
+        super().__init__()
         self.networks = ApproxContainer(**kwargs)
         self.gamma = kwargs["gamma"]
         self.tau = kwargs["tau"]
@@ -83,7 +84,7 @@ class DSAC:
         self.auto_alpha = kwargs["auto_alpha"]
         self.alpha = kwargs.get("alpha", 0.2)
         self.delay_update = kwargs["delay_update"]
-        self.TD_bound = kwargs["TD_bound"]
+        self._td_bound = kwargs["TD_bound"]
 
     @property
     def adjustable_parameters(self):
@@ -92,7 +93,6 @@ class DSAC:
             "tau",
             "auto_alpha",
             "alpha",
-            "TD_bound"
             "delay_update",
         )
 
@@ -159,7 +159,7 @@ class DSAC:
 
         self.networks.q1_optimizer.zero_grad()
         self.networks.q2_optimizer.zero_grad()
-        loss_q, q1, q2, std1, std2 = self.__compute_loss_q(data)
+        loss_q, q1, q2, std1, std2, min_std1, min_std2 = self.__compute_loss_q(data)
         loss_q.backward()
 
         for p in self.networks.q1.parameters():
@@ -187,12 +187,15 @@ class DSAC:
             "DSAC2/critic_avg_q2-RL iter": q2.item(),
             "DSAC2/critic_avg_std1-RL iter": std1.item(),
             "DSAC2/critic_avg_std2-RL iter": std2.item(),
+            "DSAC2/critic_avg_min_std1-RL iter": min_std1.item(),
+            "DSAC2/critic_avg_min_std2-RL iter": min_std2.item(),
             tb_tags["loss_actor"]: loss_policy.item(),
             tb_tags["loss_critic"]: loss_q.item(),
             "DSAC2/policy_mean-RL iter": policy_mean,
             "DSAC2/policy_std-RL iter": policy_std,
             "DSAC2/entropy-RL iter": entropy.item(),
             "DSAC2/alpha-RL iter": self.__get_alpha(),
+            "DSAC2/TD_bound-RL iter": self._td_bound.item(),
             tb_tags["alg_time"]: (time.time() - start_time) * 1000,
         }
 
@@ -200,8 +203,8 @@ class DSAC:
 
     def __q_evaluate(self, obs, act, qnet):
         StochaQ = qnet(obs, act)
-        mean, log_std = StochaQ[..., 0], StochaQ[..., -1]
-        std = log_std.exp()
+        mean, std = StochaQ[..., 0], StochaQ[..., -1]
+        # std = log_std.exp()
         normal = Normal(torch.zeros_like(mean), torch.ones_like(std))
         z = normal.sample()
         z = torch.clamp(z, -3, 3)
@@ -221,7 +224,12 @@ class DSAC:
         act2, log_prob_act2 = act2_dist.rsample()
 
         q1, q1_std, _ = self.__q_evaluate(obs, act, self.networks.q1)
+        _, q1_std_target, _ = self.__q_evaluate(obs, act, self.networks.q1_target)
         q2, q2_std, _ = self.__q_evaluate(obs, act, self.networks.q2)
+        _, q2_std_target, _ = self.__q_evaluate(obs, act, self.networks.q2_target)
+        std_target=1/2 *(q1_std_target+q2_std_target)
+
+        self._td_bound = (1 - self.tau) * self._td_bound + self.tau * 3 * torch.mean(std_target)
 
         q1_next, _, q1_next_sample = self.__q_evaluate(
             obs2, act2, self.networks.q1_target
@@ -237,7 +245,7 @@ class DSAC:
             rew,
             done,
             q1.detach(),
-            q1_std.detach(),
+            q1_std_target.detach(),
             q_next.detach(),
             q_next_sample.detach(),
             log_prob_act2.detach(),
@@ -247,33 +255,32 @@ class DSAC:
             rew,
             done,
             q2.detach(),
-            q2_std.detach(),
+            q2_std_target.detach(),
             q_next.detach(),
             q_next_sample.detach(),
             log_prob_act2.detach(),
         )
 
-        # weight = 0.5 * (torch.mean(torch.pow(q1_std.detach(), 2))
-        #                 + torch.mean(torch.pow(q2_std.detach(), 2)))
-        weight = 1
+        weight = 1.0
+        q1_std_detach = q1_std.detach()
+        q2_std_detach = q2_std.detach()
+        eps=0.1
+
 
         q1_loss = weight*torch.mean(
-            torch.pow(q1 - target_q1, 2) / (2 * torch.pow(q1_std.detach(), 2))
-            +(torch.pow(q1.detach() - target_q1_bound, 2) / (2 * torch.pow(q1_std, 2))
-            + torch.log(q1_std))
+            -(target_q1 - q1).detach() / ( torch.pow(q1_std_detach, 2)+ eps)*q1
+            -((torch.pow(q1.detach() - target_q1_bound, 2)- q1_std_detach.pow(2) )/ (torch.pow(q1_std_detach, 3) +eps)
+            )*q1_std
         )
-
-
-
 
         q2_loss = weight*torch.mean(
-            torch.pow(q2 - target_q2, 2) / (2 * torch.pow(q2_std.detach(), 2))
-            + (torch.pow(q2.detach() - target_q2_bound, 2) / (2 * torch.pow(q2_std, 2))
-            + torch.log(q2_std))
+            -(target_q2 - q2).detach() / ( torch.pow(q2_std_detach, 2)+ eps)*q2
+            -((torch.pow(q2.detach() - target_q2_bound, 2)- q2_std_detach.pow(2) )/ (torch.pow(q2_std_detach, 3) +eps)
+            )*q2_std
         )
 
 
-        return q1_loss +q2_loss, q1.detach().mean(), q2.detach().mean(), q1_std.detach().mean(), q2_std.detach().mean()
+        return q1_loss +q2_loss, q1.detach().mean(), q2.detach().mean(), q1_std.detach().mean(), q2_std.detach().mean(), q1_std.min().detach(), q2_std.min().detach()
 
     def __compute_target_q(self, r, done, q,q_std, q_next, q_next_sample, log_prob_a_next):
         target_q = r + (1 - done) * self.gamma * (
