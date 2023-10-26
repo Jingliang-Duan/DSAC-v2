@@ -1,5 +1,6 @@
 ## Reference
 - [Distributional Soft Actor-Critic (DSAC)](https://arxiv.org/abs/2001.02811)
+- [Distributional Soft Actor-Critic with Three Refinements (DSAC-T)](https://arxiv.org/abs/2310.05858)
 
 
 ## Requires
