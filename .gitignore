@@ -15,7 +15,8 @@ __pycache__/
 
 # training results
 /results/*
-
+!/results/gym_pendulum/*
+!/figures/DSAC-gym_pendulum/*
 
 
 .idea/*
