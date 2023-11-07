@@ -84,7 +84,9 @@ class DSAC:
         self.auto_alpha = kwargs["auto_alpha"]
         self.alpha = kwargs.get("alpha", 0.2)
         self.delay_update = kwargs["delay_update"]
-        self._td_bound = kwargs["TD_bound"]
+        self.mean_std1= -1.0
+        self.mean_std2= -1.0
+        self.tau_b = kwargs.get("tau_b", self.tau)
 
     @property
     def adjustable_parameters(self):
@@ -195,7 +197,8 @@ class DSAC:
             "DSAC2/policy_std-RL iter": policy_std,
             "DSAC2/entropy-RL iter": entropy.item(),
             "DSAC2/alpha-RL iter": self.__get_alpha(),
-            "DSAC2/TD_bound-RL iter": self._td_bound.item(),
+            "DSAC2/mean_std1": self.mean_std1,
+            "DSAC2/mean_std2": self.mean_std2,
             tb_tags["alg_time"]: (time.time() - start_time) * 1000,
         }
 
@@ -224,12 +227,19 @@ class DSAC:
         act2, log_prob_act2 = act2_dist.rsample()
 
         q1, q1_std, _ = self.__q_evaluate(obs, act, self.networks.q1)
-        _, q1_std_target, _ = self.__q_evaluate(obs, act, self.networks.q1_target)
         q2, q2_std, _ = self.__q_evaluate(obs, act, self.networks.q2)
-        _, q2_std_target, _ = self.__q_evaluate(obs, act, self.networks.q2_target)
-        std_target=1/2 *(q1_std_target+q2_std_target)
 
-        self._td_bound = (1 - self.tau) * self._td_bound + self.tau * 3 * torch.mean(std_target)
+        if self.mean_std1 == -1.0:
+            self.mean_std1 = torch.mean(q1_std.detach())
+        else:
+            self.mean_std1 = (1 - self.tau_b) * self.mean_std1 + self.tau_b * torch.mean(q1_std.detach())
+
+        if self.mean_std2 == -1.0:
+            self.mean_std2 = torch.mean(q2_std.detach())
+        else:
+            self.mean_std2 = (1 - self.tau_b) * self.mean_std2 + self.tau_b * torch.mean(q2_std.detach())
+
+
 
         q1_next, _, q1_next_sample = self.__q_evaluate(
             obs2, act2, self.networks.q1_target
@@ -245,7 +255,7 @@ class DSAC:
             rew,
             done,
             q1.detach(),
-            q1_std_target.detach(),
+            self.mean_std1.detach(),
             q_next.detach(),
             q_next_sample.detach(),
             log_prob_act2.detach(),
@@ -255,27 +265,25 @@ class DSAC:
             rew,
             done,
             q2.detach(),
-            q2_std_target.detach(),
+            self.mean_std2.detach(),
             q_next.detach(),
             q_next_sample.detach(),
             log_prob_act2.detach(),
         )
 
-        weight = 1.0
-        q1_std_detach = q1_std.detach()
-        q2_std_detach = q2_std.detach()
-        eps=0.1
+        q1_std_detach = torch.clamp(q1_std, min=0.).detach()
+        q2_std_detach = torch.clamp(q2_std, min=0.).detach()
+        bias = 0.1
 
-
-        q1_loss = weight*torch.mean(
-            -(target_q1 - q1).detach() / ( torch.pow(q1_std_detach, 2)+ eps)*q1
-            -((torch.pow(q1.detach() - target_q1_bound, 2)- q1_std_detach.pow(2) )/ (torch.pow(q1_std_detach, 3) +eps)
+        q1_loss = (torch.pow(self.mean_std1, 2) + bias) * torch.mean(
+            -(target_q1 - q1).detach() / ( torch.pow(q1_std_detach, 2)+ bias)*q1
+            -((torch.pow(q1.detach() - target_q1_bound, 2)- q1_std_detach.pow(2) )/ (torch.pow(q1_std_detach, 3) +bias)
             )*q1_std
         )
 
-        q2_loss = weight*torch.mean(
-            -(target_q2 - q2).detach() / ( torch.pow(q2_std_detach, 2)+ eps)*q2
-            -((torch.pow(q2.detach() - target_q2_bound, 2)- q2_std_detach.pow(2) )/ (torch.pow(q2_std_detach, 3) +eps)
+        q2_loss = (torch.pow(self.mean_std2, 2) + bias)*torch.mean(
+            -(target_q2 - q2).detach() / ( torch.pow(q2_std_detach, 2)+ bias)*q2
+            -((torch.pow(q2.detach() - target_q2_bound, 2)- q2_std_detach.pow(2) )/ (torch.pow(q2_std_detach, 3) +bias)
             )*q2_std
         )
 
@@ -289,7 +297,7 @@ class DSAC:
         target_q_sample = r + (1 - done) * self.gamma * (
             q_next_sample - self.__get_alpha() * log_prob_a_next
         )
-        td_bound = 3 * torch.mean(q_std)
+        td_bound = 3 * q_std
         difference = torch.clamp(target_q_sample - q, -td_bound, td_bound)
         target_q_bound = q + difference
         return target_q.detach(), target_q_bound.detach()
