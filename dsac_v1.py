@@ -1,4 +1,4 @@
-__all__=["ApproxContainer","DSACV1"]
+__all__=["ApproxContainer","DSAC_V1"]
 import time
 from copy import deepcopy
 from typing import Tuple
