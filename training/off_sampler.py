@@ -7,7 +7,6 @@ from utils.initialization import create_env
 from utils.common_utils import set_seed
 from utils.explore_noise import GaussNoise, EpsilonGreedy
 from utils.tensorboard_setup import tb_tags
-from dsac import ApproxContainer
 
 
 class OffSampler:
@@ -17,6 +16,10 @@ class OffSampler:
         _, self.env = set_seed(kwargs["trainer"], kwargs["seed"], index + 200, self.env)
         self.obs, self.info = self.env.reset()
         self.has_render = hasattr(self.env, "render")
+        alg_name = kwargs["algorithm"]
+        alg_file_name = alg_name.lower()
+        file = __import__(alg_file_name)
+        ApproxContainer = getattr(file, "ApproxContainer")
         self.networks = ApproxContainer(**kwargs)
         self.noise_params = kwargs["noise_params"]
         self.sample_batch_size = kwargs["batch_size_per_sampler"]
