@@ -1,6 +1,6 @@
 import argparse
 import os
-import numpy as np
+#import numpy as np
 
 from utils.initialization import create_alg,create_buffer,create_env
 from training.evaluator import create_evaluator
@@ -20,8 +20,8 @@ if __name__ == "__main__":
     # Key Parameters for users
     parser.add_argument("--env_id", type=str, default="gym_pendulum", help="id of environment")
     #gym_pendulum can be replaced by other envs in the env_gym folder, such as gym_ant, gym_walker2d... but more complex envs need bigger "max iteration" setting. U can refer to "dsac_mlp_humanoid_offserial.py" to set up.
-    parser.add_argument("--algorithm", type=str, default="DSAC", help="RL algorithm")
-    #set algorithm default to DSAC, but it can be replaced by DSAC_V1 if you want to use the old version of DSAC.
+    parser.add_argument("--algorithm", type=str, default="DSAC_V2", help="DSAC_V2 or DSAC_V1")
+    #set algorithm default to DSAC_V2, but it can be replaced by DSAC_V1 if you want to use the old version of DSAC.
 
     parser.add_argument("--enable_cuda", default=False, help="Enable CUDA")
     parser.add_argument("--seed", default=None, help="Enable CUDA")

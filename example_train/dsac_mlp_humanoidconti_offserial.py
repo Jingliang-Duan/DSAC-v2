@@ -19,7 +19,7 @@ if __name__ == "__main__":
     ################################################
     # Key Parameters for users
     parser.add_argument("--env_id", type=str, default="gym_humanoid", help="id of environment")
-    parser.add_argument("--algorithm", type=str, default="DSAC", help="RL algorithm")
+    parser.add_argument("--algorithm", type=str, default="DSAC_V2", help="DSAC_V2 or DSAC_V1")
     parser.add_argument("--enable_cuda", default=False, help="Enable CUDA")
     parser.add_argument("--seed", default=None, help="Enable CUDA")
     ################################################
