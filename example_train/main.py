@@ -20,8 +20,9 @@ if __name__ == "__main__":
     # Key Parameters for users
     parser.add_argument("--env_id", type=str, default="gym_pendulum", help="id of environment")
     #gym_pendulum can be replaced by other envs in the env_gym folder, such as gym_ant, gym_walker2d... but more complex envs need bigger "max iteration" setting. U can refer to "dsac_mlp_humanoid_offserial.py" to set up.
-
     parser.add_argument("--algorithm", type=str, default="DSAC", help="RL algorithm")
+    #set algorithm default to DSAC, but it can be replaced by DSACV1 if you want to use the old version of DSAC.
+
     parser.add_argument("--enable_cuda", default=False, help="Enable CUDA")
     parser.add_argument("--seed", default=None, help="Enable CUDA")
     ################################################
@@ -139,8 +140,10 @@ if __name__ == "__main__":
     parser.add_argument("--save_folder", type=str, default= None)
     # Save value/policy every N updates
     parser.add_argument("--apprfunc_save_interval", type=int, default=5000)
+
     # Save key info every N updates
     parser.add_argument("--log_save_interval", type=int, default=100)
+
 
     ################################################
     # Get parameter dictionary
