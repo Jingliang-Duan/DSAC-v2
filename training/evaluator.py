@@ -3,7 +3,6 @@ import torch
 
 from utils.initialization import create_env
 from utils.common_utils import set_seed
-from dsac import ApproxContainer
 
 
 
@@ -14,7 +13,10 @@ class Evaluator:
         )  # evaluation don't need to scale reward
         self.env = create_env(**kwargs)
         _, self.env = set_seed(kwargs["trainer"], kwargs["seed"], index + 400, self.env)
-
+        alg_name = kwargs["algorithm"]
+        alg_file_name = alg_name.lower()
+        file = __import__(alg_file_name)
+        ApproxContainer = getattr(file, "ApproxContainer")
         self.networks = ApproxContainer(**kwargs)
         self.render = kwargs["is_render"]
         self.num_eval_episode = kwargs["num_eval_episode"]
