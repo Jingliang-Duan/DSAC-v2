@@ -53,7 +53,7 @@ class ApproxContainer(torch.nn.Module):
         return self.policy.get_act_dist(logits)
 
 
-class DSACV1:
+class DSAC_V1:
     """DSAC algorithm
 
     Paper: https://ieeexplore.ieee.org/abstract/document/9448360
