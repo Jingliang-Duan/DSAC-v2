@@ -36,7 +36,7 @@ python dsac_mlp_humanoidconti_offserial.py
 After training, the results will be stored in the "DSAC-T/results" folder.
 
 ### Algorithm Switching
-In the "main.py/dsac_mlp_humanoidconti_offserial.py" file, you can switch between 'DSAC' and 'DSACV1' by changing the "--algorithm" parameter. 
+In the "main.py/dsac_mlp_humanoidconti_offserial.py" file, you can switch between 'DSAC' and 'DSAC_V1' by changing the "--algorithm" parameter. 
 
 ## Simulation 
 In the "DSAC-T/results" folder, pick the path to the folder where the policy will be applied to the simulation and select the appropriate PKL file for the simulation.
