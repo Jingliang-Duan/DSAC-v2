@@ -9,7 +9,7 @@ from .common_utils import change_type, seed_everything
 
 
 def init_args(env, **args):
-    args["algorithm"] = "DSAC"
+    #args["algorithm"] = args['algorithm']
     # set torch parallel threads nums
     torch.set_num_threads(4)
     print("limit torch intra-op parallel threads num to {num} for saving computing resource.".format(num=4))
@@ -68,6 +68,7 @@ def init_args(env, **args):
         dir_path = os.path.dirname(dir_path)
         args["save_folder"] = os.path.join(
             dir_path + "/results/",
+            args['algorithm'] +str("_")+ args['env_id'],
             datetime.datetime.now().strftime("%y%m%d-%H%M%S"),
         )
     os.makedirs(args["save_folder"], exist_ok=True)
