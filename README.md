@@ -35,6 +35,9 @@ python dsac_mlp_humanoidconti_offserial.py
 ```
 After training, the results will be stored in the "DSAC-T/results" folder.
 
+### Algorithm Switching
+In the "main.py/dsac_mlp_humanoidconti_offserial.py" file, you can switch between 'DSAC' and 'DSACV1' by changing the "--algorithm" parameter. 
+
 ## Simulation 
 In the "DSAC-T/results" folder, pick the path to the folder where the policy will be applied to the simulation and select the appropriate PKL file for the simulation.
 ```bash
@@ -42,6 +45,11 @@ python run_policy.py
 #you may need to "pip install imageio-ffmpeg" before running this file on Windows. 
 ```
 After running, the simulation vedio and state&action curve figures will be stored in the "DSAC-T/figures" folder.
+
+
+
+
+
 
 
 ## Acknowledgment
