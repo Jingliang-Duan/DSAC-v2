@@ -185,7 +185,7 @@ class DSAC_V1:
         StochaQ = qnet(obs, act)
         mean, std = StochaQ[..., 0], StochaQ[..., -1]
         # std = log_std.exp()
-        normal = Normal(torch.zeros(mean.shape), torch.ones(std.shape))
+        normal = Normal(torch.zeros_like(mean), torch.ones_like(std))
         z = normal.sample()
         z = torch.clamp(z, -3, 3)
         q_value = mean + torch.mul(z, std)
