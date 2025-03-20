@@ -28,7 +28,7 @@ class OffSampler:
         self.obsv_dim = kwargs["obsv_dim"]
         self.act_dim = kwargs["action_dim"]
         self.total_sample_number = 0
-        self.reward_scale = 1.0
+        self.reward_scale = kwargs["reward_scale"]
         if self.noise_params is not None:
             if self.action_type == "continu":
                 self.noise_processor = GaussNoise(**self.noise_params)
