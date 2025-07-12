@@ -6,6 +6,7 @@ from typing import Tuple
 import torch
 import torch.nn as nn
 from torch.distributions import Normal
+from torch.nn.functional import huber_loss
 from torch.optim import Adam
 
 from typing import Dict
@@ -275,17 +276,15 @@ class DSAC_V2:
         q2_std_detach = torch.clamp(q2_std, min=0.).detach()
         bias = 0.1
 
-        q1_loss = (torch.pow(self.mean_std1, 2) + bias) * torch.mean(
-            -(target_q1 - q1).detach() / ( torch.pow(q1_std_detach, 2)+ bias)*q1
-            -((torch.pow(q1.detach() - target_q1_bound, 2)- q1_std_detach.pow(2) )/ (torch.pow(q1_std_detach, 3) +bias)
-            )*q1_std
-        )
+        ratio1 = (torch.pow(self.mean_std1, 2) / (torch.pow(q1_std_detach, 2) + bias)).clamp(min=0.1, max=10)
+        ratio2 = (torch.pow(self.mean_std2, 2) / (torch.pow(q2_std_detach, 2) + bias)).clamp(min=0.1, max=10)
 
-        q2_loss = (torch.pow(self.mean_std2, 2) + bias)*torch.mean(
-            -(target_q2 - q2).detach() / ( torch.pow(q2_std_detach, 2)+ bias)*q2
-            -((torch.pow(q2.detach() - target_q2_bound, 2)- q2_std_detach.pow(2) )/ (torch.pow(q2_std_detach, 3) +bias)
-            )*q2_std
-        )
+        q1_loss = torch.mean(ratio1 *(huber_loss(q1, target_q1, delta = 50, reduction='none') 
+                                      + q1_std *(q1_std_detach.pow(2) - huber_loss(q1.detach(), target_q1_bound, delta = 50, reduction='none'))/(q1_std_detach +bias)
+                            ))
+        q2_loss = torch.mean(ratio2 *(huber_loss(q2, target_q2, delta = 50, reduction='none')
+                                      + q2_std *(q2_std_detach.pow(2) - huber_loss(q2.detach(), target_q2_bound, delta = 50, reduction='none'))/(q2_std_detach +bias)
+                            ))
 
 
         return q1_loss +q2_loss, q1.detach().mean(), q2.detach().mean(), q1_std.detach().mean(), q2_std.detach().mean(), q1_std.min().detach(), q2_std.min().detach()
