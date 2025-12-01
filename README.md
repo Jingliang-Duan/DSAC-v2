@@ -1,3 +1,6 @@
+## DSAC-v2-stable_baselines3
+- [DSAC-v2-stable_baselines3 (DSAC-T-SB3)](https://github.com/Jingliang-Duan/DSAC-v2-StableBaselines3)
+
 ## Reference
 - [Distributional Soft Actor-Critic (DSAC)](https://ieeexplore.ieee.org/document/9448360)
 - [Distributional Soft Actor-Critic with Three Refinements (DSAC-T)](https://ieeexplore.ieee.org/abstract/document/10858686)
